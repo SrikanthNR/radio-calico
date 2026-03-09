@@ -1,0 +1,5 @@
+node_modules/
+express-app/data.db
+flask-app/__pycache__/
+flask-app/*.pyc
+.env
