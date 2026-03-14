@@ -23,12 +23,32 @@ A live internet radio player web app for Radio Calico, built with Node.js and Ex
 
 ## Getting Started
 
-### Prerequisites
+### Option A — Docker (recommended)
+
+Requires [Docker](https://docs.docker.com/get-docker/) with the Compose plugin.
+
+```bash
+# Development — live source reload, server restarts on every file change
+docker compose up dev
+
+# Production — self-contained image, restarts automatically on failure
+docker compose up prod
+
+# Rebuild images after dependency changes
+docker compose build --no-cache dev
+docker compose build --no-cache prod
+```
+
+The server starts at **http://localhost:3000**.
+
+SQLite data is persisted in a named Docker volume (`db_dev` or `db_prod`) and survives container restarts. The database path inside the container is `/data/data.db`, controlled by the `DB_PATH` environment variable.
+
+### Option B — Local Node.js
+
+#### Prerequisites
 
 - Node.js v18+
 - npm
-
-### Install & Run
 
 ```bash
 cd express-app
@@ -119,11 +139,14 @@ The browser scripts are plain globals-based JS (no ES modules). Tests load each 
 
 ```
 radiocalico/
+├── Dockerfile              # Multi-stage build (deps-prod, deps-dev, prod, dev)
+├── docker-compose.yml      # dev + prod services with DB volumes
+├── .dockerignore
 ├── express-app/
 │   ├── app.js              # Express app factory (routes, DB setup)
 │   ├── index.js            # Server entry point (calls app.js + listen)
 │   ├── jest.config.js      # Jest config (backend: node, frontend: jsdom)
-│   ├── data.db             # SQLite database (auto-created)
+│   ├── data.db             # SQLite database (auto-created, local only)
 │   ├── package.json
 │   ├── public/
 │   │   ├── player.js       # HLS setup, play/pause, volume

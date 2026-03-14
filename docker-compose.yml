@@ -1,0 +1,39 @@
+services:
+
+  # ── Development ─────────────────────────────────────────────────────────────
+  # Source files are mounted live; the server restarts on every file change.
+  # node_modules stays inside the image so the host OS never interferes with
+  # native binaries compiled inside the container.
+  dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./express-app:/app/express-app       # live source reload
+      - nm_dev:/app/express-app/node_modules # keep in-container node_modules
+      - db_dev:/data                         # persistent SQLite DB
+    environment:
+      NODE_ENV: development
+      DB_PATH: /data/data.db
+
+  # ── Production ───────────────────────────────────────────────────────────────
+  # Self-contained image; only the database directory is mounted externally.
+  prod:
+    build:
+      context: .
+      target: prod
+    ports:
+      - "3000:3000"
+    volumes:
+      - db_prod:/data                        # persistent SQLite DB
+    environment:
+      NODE_ENV: production
+      DB_PATH: /data/data.db
+    restart: unless-stopped
+
+volumes:
+  nm_dev:
+  db_dev:
+  db_prod:

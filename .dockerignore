@@ -1,0 +1,14 @@
+.git
+.gitignore
+*.md
+flask-app/
+*.zip
+
+# Never bake the host node_modules or DB into the image
+express-app/node_modules
+express-app/data.db
+
+# Test artifacts
+express-app/tests/
+express-app/jest.config.js
+express-app/coverage/
