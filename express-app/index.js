@@ -2,7 +2,7 @@
 
 const createApp = require('./app');
 
-const { app } = createApp();
+const { app } = createApp(process.env.DB_PATH);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Express running at http://localhost:${PORT}`));

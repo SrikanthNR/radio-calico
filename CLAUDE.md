@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-All commands run from `express-app/`:
+**Docker (preferred):**
+
+```bash
+docker compose up dev    # development with live reload
+docker compose up prod   # production, restarts on failure
+docker compose build --no-cache <target>  # rebuild after dep changes
+```
+
+**Local Node.js** (run from `express-app/`):
 
 ```bash
 npm start        # production
@@ -25,7 +33,11 @@ This is a single-file Express.js app (`express-app/index.js`) that serves a live
 - `POST /api/ratings` — upsert or toggle-off a rating (`rating`: `1` or `-1`)
 - `GET/POST /items` — CRUD for the `items` table (dev scaffolding)
 
-**Database (`express-app/data.db`, SQLite via `better-sqlite3`):**
+**Environment variables:**
+- `DB_PATH` — override SQLite file location (default: `express-app/data.db`); Docker sets this to `/data/data.db`
+- `PORT` — override listen port (default: `3000`)
+
+**Database (`express-app/data.db` locally, `/data/data.db` in Docker, SQLite via `better-sqlite3`):**
 - `items(id, name, created_at)` — dev scaffolding table
 - `ratings(song_key, user_id, rating)` — per-user song ratings; PK is `(song_key, user_id)`; rating is `1` or `-1`; toggling the same value deletes the row
 
@@ -56,6 +68,18 @@ See `RadioCalico_Style_Guide.txt` for full details. Key tokens used throughout t
 
 Fonts: **Montserrat** (headings, labels) and **Open Sans** (body), loaded from Google Fonts.
 
-### style guide
-- A text version of the styling guide for the webpage is at /home/radiocalico/RadioCalico_Style_Guide.txt
-- The Radio Calico logo is at /home/radiocalico/RadioCalicoLogoTM.png
+### Style guide
+- A text version of the styling guide for the webpage is at `RadioCalico_Style_Guide.txt`
+- The Radio Calico logo is at `RadioCalicoLogoTM.png` (repo root; served at `/logo.png`)
+
+## Docker
+
+**Files:**
+- `Dockerfile` — multi-stage build with four targets: `deps-prod`, `deps-dev`, `prod`, `dev`
+- `docker-compose.yml` — `dev` and `prod` services; named volumes `db_dev`/`db_prod` persist SQLite
+- `.dockerignore` — excludes `node_modules`, `data.db`, tests, `flask-app/`, and zip files
+
+**Build stages:**
+- `deps-prod` / `deps-dev` — Alpine + build tools (`python3 make g++`) to compile `better-sqlite3`; `deps-dev` adds devDependencies
+- `prod` — slim Alpine runtime; no build tools; copies compiled `node_modules` from `deps-prod`
+- `dev` — copies compiled `node_modules` from `deps-dev`; source tree is mounted at runtime via a bind mount; a named volume overlays `node_modules` to prevent the host from clobbering compiled binaries
