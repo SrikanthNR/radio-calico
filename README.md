@@ -71,23 +71,78 @@ The server starts at **http://localhost:3000**.
 
 Posting the same rating a second time toggles it off (deletes the row).
 
+## Testing
+
+### Run the tests
+
+```bash
+cd express-app
+npm test
+```
+
+63 tests across 6 suites (backend + frontend), all run with [Jest](https://jestjs.io/).
+
+### Backend tests
+
+**File:** `express-app/tests/backend/api.test.js`
+**Environment:** Node.js · **Tool:** [supertest](https://github.com/ladjs/supertest)
+
+Each test spins up a fresh in-memory SQLite database (`:memory:`), so tests are fully isolated and leave no files on disk.
+
+| Suite | What's covered |
+|---|---|
+| `GET /api/ratings` | Missing `song` param → 400; zero counts when empty; correct thumbs-up/down aggregation; per-user `user_rating` |
+| `POST /api/ratings` | Missing fields → 400; invalid rating value → 400; add thumbs-up/down; toggle-off same rating; switch rating; multi-user accumulation |
+| `GET /radio` | Returns 200 HTML containing expected player markup |
+| `GET /items` / `POST /items` | Empty list; insert and retrieve items |
+
+### Frontend tests
+
+**Files:** `express-app/tests/frontend/`
+**Environment:** jsdom (simulated browser DOM)
+
+The browser scripts are plain globals-based JS (no ES modules). Tests load each file via `global.eval()` into the jsdom global scope, then call the functions directly.
+
+| File | Functions tested |
+|---|---|
+| `shared.test.js` | `escHtml` — 5 cases (ampersands, tags, quotes, plain text, combined); `songKey` — 3 cases (formatting, lowercasing, empty strings); localStorage UUID persistence on first load |
+| `ratings.test.js` | `applyRatingUI` — count updates, active class on thumbs-up/down/neither; `fetchRatings` — correct API URL construction, fallback on network failure |
+| `nowPlaying.test.js` | `updateNowPlaying` — artist, title, album, year badge, cover art src, source/stream quality formatting, missing-field fallbacks |
+| `recentTracks.test.js` | `renderRecentTracks` — renders up to 5 tracks, skips entries without a title, HTML-escapes titles, clears stale content on re-render |
+| `player.test.js` | `formatTime` — 5 boundary cases (0s, <1m, >1h, padding); `setStatus` — updates DOM text; `setPlaying` — icon swap, visualizer class, status text |
+
+### Test architecture
+
+`index.js` is a thin entry point that just starts the server. All routes and DB setup live in `app.js`, which exports a `createApp(dbPath)` factory. Backend tests call `createApp(':memory:')` to get an isolated app instance per test.
+
 ## Project Structure
 
 ```
 radiocalico/
 ├── express-app/
-│   ├── index.js            # Express server + all routes
+│   ├── app.js              # Express app factory (routes, DB setup)
+│   ├── index.js            # Server entry point (calls app.js + listen)
+│   ├── jest.config.js      # Jest config (backend: node, frontend: jsdom)
 │   ├── data.db             # SQLite database (auto-created)
 │   ├── package.json
-│   └── public/
-│       ├── player.js       # HLS setup, play/pause, volume
-│       ├── radio.js        # Main init and metadata polling
-│       ├── shared.js       # Shared utilities
-│       ├── radio.css       # Additional styles
-│       └── components/
-│           ├── nowPlaying.js    # Now-playing UI updates
-│           ├── recentTracks.js  # Recent tracks strip
-│           └── ratings.js       # Rating buttons logic
+│   ├── public/
+│   │   ├── player.js       # HLS setup, play/pause, volume
+│   │   ├── radio.js        # Main init and metadata polling
+│   │   ├── shared.js       # Shared utilities (escHtml, songKey, iTunesArt)
+│   │   ├── radio.css       # Additional styles
+│   │   └── components/
+│   │       ├── nowPlaying.js    # Now-playing UI updates
+│   │       ├── recentTracks.js  # Recent tracks strip
+│   │       └── ratings.js       # Rating buttons logic
+│   └── tests/
+│       ├── backend/
+│       │   └── api.test.js      # API route tests (supertest + in-memory SQLite)
+│       └── frontend/
+│           ├── shared.test.js
+│           ├── ratings.test.js
+│           ├── nowPlaying.test.js
+│           ├── recentTracks.test.js
+│           └── player.test.js
 ├── RadioCalicoLogoTM.png
 └── README.md
 ```
