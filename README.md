@@ -102,11 +102,24 @@ Posting the same rating a second time toggles it off (deletes the row).
 | `DB_PATH`      | SQLite file path (dev/test); selects `app.js`            | `express-app/data.db` |
 | `PORT`         | HTTP listen port                                         | `3000`              |
 
-## Testing
+## Testing & Security
 
 ```bash
-cd express-app
+# Run all tests
+make test
+
+# Run npm audit (fails if any vulnerability is found)
+make audit
+
+# Run audit + tests together
+make security
+```
+
+Or directly from `express-app/`:
+
+```bash
 npm test
+npm audit
 ```
 
 63 tests across 6 suites (backend + frontend), all run with [Jest](https://jestjs.io/). Tests use an in-memory SQLite database — no PostgreSQL or Docker required.
