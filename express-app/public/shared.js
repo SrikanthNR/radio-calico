@@ -18,13 +18,20 @@ function songKey(artist, title) {
   return (artist + '|||' + title).toLowerCase();
 }
 
+// Cache iTunes lookups for the session to avoid redundant API calls
+const _iTunesCache = new Map();
+
 async function iTunesArt(artist, title) {
+  const key = artist + '|||' + title;
+  if (_iTunesCache.has(key)) return _iTunesCache.get(key);
   try {
     const q = encodeURIComponent(artist + ' ' + title);
     const res = await fetch('https://itunes.apple.com/search?term=' + q + '&media=music&limit=1');
     if (!res.ok) return '';
     const data = await res.json();
     const result = data.results && data.results[0];
-    return result ? result.artworkUrl100.replace('100x100bb', '300x300bb') : '';
+    const url = result ? result.artworkUrl100.replace('100x100bb', '300x300bb') : '';
+    _iTunesCache.set(key, url);
+    return url;
   } catch (e) { return ''; }
 }
