@@ -21,6 +21,14 @@ npm run dev      # development with auto-restart (node --watch)
 
 Server runs at http://localhost:3000.
 
+**Make (from repo root):**
+
+```bash
+make test      # run Jest unit tests
+make audit     # run npm audit (fails on any vulnerability)
+make security  # audit + tests
+```
+
 ## Architecture
 
 Express.js app serving a live internet radio player for Radio Calico. Entry point is `express-app/index.js`; app logic lives in `app.js` (SQLite/dev) or `app-pg.js` (PostgreSQL/prod), selected by environment variable.

@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const helmet = require('helmet');
 const Database = require('better-sqlite3');
 const path = require('path');
 
@@ -8,6 +9,7 @@ function createApp(dbPath) {
   const app = express();
   const db = new Database(dbPath !== undefined ? dbPath : path.join(__dirname, 'data.db'));
 
+  app.use(helmet());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));

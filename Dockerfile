@@ -18,6 +18,9 @@ RUN npm ci
 # ── production image ──────────────────────────────────────────────────────────
 FROM node:24-alpine AS prod
 
+# Upgrade OS packages to pick up security patches not yet in the base image
+RUN apk upgrade --no-cache
+
 WORKDIR /app
 COPY --from=deps-prod /deps/node_modules ./express-app/node_modules
 COPY express-app/ ./express-app/
@@ -32,6 +35,8 @@ CMD ["node", "index.js"]
 
 # ── development image ─────────────────────────────────────────────────────────
 FROM node:24-alpine AS dev
+
+RUN apk upgrade --no-cache
 
 WORKDIR /app
 # Pre-install compiled node_modules into the image; the source tree is
