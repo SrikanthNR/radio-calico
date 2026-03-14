@@ -85,33 +85,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sudo sh -s -- -b /usr/local/bin
+
+      # Use docker build directly so the image tag is always 'radiocalico-app'
+      # regardless of which directory the GitHub runner clones the repo into.
       - name: Build production image
-        run: docker compose build app
+        run: docker build --target prod --tag radiocalico-app .
 
       - name: Scan production image (blocks on HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.30.0
-        with:
-          image-ref: radiocalico-app
-          format: table
-          exit-code: "1"
-          ignore-unfixed: true
-          severity: HIGH,CRITICAL
-          trivyignores: .trivyignore
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL \
+            --ignore-unfixed --ignorefile .trivyignore radiocalico-app
 
       - name: Scan postgres:17-alpine (informational)
-        uses: aquasecurity/trivy-action@0.30.0
-        with:
-          image-ref: postgres:17-alpine
-          format: table
-          exit-code: "0"
-          ignore-unfixed: true
-          severity: HIGH,CRITICAL
+        run: |
+          trivy image --exit-code 0 --severity HIGH,CRITICAL \
+            --ignore-unfixed postgres:17-alpine
 
       - name: Scan nginx:alpine (informational)
-        uses: aquasecurity/trivy-action@0.30.0
-        with:
-          image-ref: nginx:alpine
-          format: table
-          exit-code: "0"
-          ignore-unfixed: true
-          severity: HIGH,CRITICAL
+        run: |
+          trivy image --exit-code 0 --severity HIGH,CRITICAL \
+            --ignore-unfixed nginx:alpine
