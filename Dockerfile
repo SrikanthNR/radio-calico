@@ -1,15 +1,18 @@
 # syntax=docker/dockerfile:1
 
-# ── deps-prod: compile native modules, production only ───────────────────────
+# ── deps-prod: pg only, no native compilation needed ─────────────────────────
 FROM node:24-alpine AS deps-prod
+
+WORKDIR /deps
+COPY express-app/package*.json ./
+RUN npm ci --omit=dev --omit=optional
+
+# ── deps-dev: all dependencies (better-sqlite3 requires build tools) ─────────
+FROM node:24-alpine AS deps-dev
 
 WORKDIR /deps
 RUN apk add --no-cache python3 make g++
 COPY express-app/package*.json ./
-RUN npm ci --omit=dev
-
-# ── deps-dev: all dependencies (includes devDependencies) ────────────────────
-FROM deps-prod AS deps-dev
 RUN npm ci
 
 # ── production image ──────────────────────────────────────────────────────────

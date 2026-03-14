@@ -2,6 +2,7 @@
 .gitignore
 *.md
 flask-app/
+nginx/
 *.zip
 
 # Never bake the host node_modules or DB into the image
