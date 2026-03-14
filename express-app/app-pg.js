@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const helmet = require('helmet');
 const { Pool } = require('pg');
 const path = require('path');
 
@@ -8,6 +9,7 @@ function createApp(connectionString) {
   const app = express();
   const pool = new Pool({ connectionString });
 
+  app.use(helmet());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));

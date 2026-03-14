@@ -1,0 +1,13 @@
+# Vulnerabilities in npm's own bundled packages (minimatch, tar).
+# These are internal to the npm CLI tool and are not reachable from
+# our running Express application. They would only matter if an
+# attacker could run `npm install` inside the container, which is
+# not possible in our production setup.
+#
+# Re-evaluate when the node:24-alpine base image ships npm with fixes.
+CVE-2026-26996
+CVE-2026-27903
+CVE-2026-27904
+CVE-2026-26960
+CVE-2026-29786
+CVE-2026-31802
