@@ -9,7 +9,21 @@ function createApp(dbPath) {
   const app = express();
   const db = new Database(dbPath !== undefined ? dbPath : path.join(__dirname, 'data.db'));
 
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc:  ["'self'"],
+        scriptSrc:   ["'self'", "https://cdn.jsdelivr.net"],
+        styleSrc:    ["'self'", "https:", "'unsafe-inline'"],
+        fontSrc:     ["'self'", "https:", "data:"],
+        imgSrc:      ["'self'", "data:", "https://d3d4yli4hf5bmh.cloudfront.net", "https://*.mzstatic.com"],
+        mediaSrc:    ["'self'", "https://d3d4yli4hf5bmh.cloudfront.net"],
+        connectSrc:  ["'self'", "https://d3d4yli4hf5bmh.cloudfront.net", "https://itunes.apple.com"],
+        objectSrc:   ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
+  }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   // Cache static assets for 1 year (fingerprinted by filename in production);

@@ -9,7 +9,21 @@ function createApp(connectionString) {
   const app = express();
   const pool = new Pool({ connectionString });
 
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc:  ["'self'"],
+        scriptSrc:   ["'self'", "https://cdn.jsdelivr.net"],
+        styleSrc:    ["'self'", "https:", "'unsafe-inline'"],
+        fontSrc:     ["'self'", "https:", "data:"],
+        imgSrc:      ["'self'", "data:", "https://d3d4yli4hf5bmh.cloudfront.net", "https://*.mzstatic.com"],
+        mediaSrc:    ["'self'", "https://d3d4yli4hf5bmh.cloudfront.net"],
+        connectSrc:  ["'self'", "https://d3d4yli4hf5bmh.cloudfront.net", "https://itunes.apple.com"],
+        objectSrc:   ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
+  }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public'), {
