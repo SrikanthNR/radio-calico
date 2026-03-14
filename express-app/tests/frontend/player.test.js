@@ -69,16 +69,15 @@ describe('setStatus', () => {
 });
 
 describe('setPlaying', () => {
-  test('hides play icon and shows pause icon when playing=true', () => {
+  test('adds is-playing class to play button when playing=true', () => {
     setPlaying(true);
-    expect(document.getElementById('icon-play').style.display).toBe('none');
-    expect(document.getElementById('icon-pause').style.display).toBe('block');
+    expect(document.getElementById('play-btn').classList.contains('is-playing')).toBe(true);
   });
 
-  test('shows play icon and hides pause icon when playing=false', () => {
+  test('removes is-playing class from play button when playing=false', () => {
+    setPlaying(true);
     setPlaying(false);
-    expect(document.getElementById('icon-play').style.display).toBe('block');
-    expect(document.getElementById('icon-pause').style.display).toBe('none');
+    expect(document.getElementById('play-btn').classList.contains('is-playing')).toBe(false);
   });
 
   test('adds playing class to visualizer when playing=true', () => {

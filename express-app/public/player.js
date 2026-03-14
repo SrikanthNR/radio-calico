@@ -61,8 +61,8 @@ function initHls() {
 
 function setPlaying(state) {
   playing = state;
-  iconPlay.style.display  = state ? 'none'  : 'block';
-  iconPause.style.display = state ? 'block' : 'none';
+  // Toggle a CSS class instead of inline display styles to avoid forced layout
+  playBtn.classList.toggle('is-playing', state);
   visualizer.classList.toggle('playing', state);
   if (!state) setStatus('Paused');
 }

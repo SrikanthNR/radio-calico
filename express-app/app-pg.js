@@ -9,10 +9,29 @@ function createApp(connectionString) {
   const app = express();
   const pool = new Pool({ connectionString });
 
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc:  ["'self'"],
+        scriptSrc:   ["'self'", "https://cdn.jsdelivr.net"],
+        styleSrc:    ["'self'", "https:", "'unsafe-inline'"],
+        fontSrc:     ["'self'", "https:", "data:"],
+        imgSrc:      ["'self'", "data:", "https://d3d4yli4hf5bmh.cloudfront.net", "https://*.mzstatic.com"],
+        mediaSrc:    ["'self'", "https://d3d4yli4hf5bmh.cloudfront.net"],
+        connectSrc:  ["'self'", "https://d3d4yli4hf5bmh.cloudfront.net", "https://itunes.apple.com"],
+        objectSrc:   ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
+  }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '1y',
+    etag: true,
+  }));
+
+  pool.query(`CREATE INDEX IF NOT EXISTS idx_ratings_song_key ON ratings (song_key)`).catch(() => {});
 
   pool.query(`
     CREATE TABLE IF NOT EXISTS items (
@@ -65,7 +84,8 @@ function createApp(connectionString) {
       [song_key, user_id]
     );
     const existing = existingResult.rows[0];
-    if (existing && existing.rating === ratingNum) {
+    const toggled = existing && existing.rating === ratingNum;
+    if (toggled) {
       await pool.query('DELETE FROM ratings WHERE song_key = $1 AND user_id = $2', [song_key, user_id]);
     } else {
       await pool.query(
@@ -82,15 +102,10 @@ function createApp(connectionString) {
       [song_key]
     );
     const counts = countsResult.rows[0];
-    const userResult = await pool.query(
-      'SELECT rating FROM ratings WHERE song_key = $1 AND user_id = $2',
-      [song_key, user_id]
-    );
-    const userRow = userResult.rows[0];
     res.json({
       thumbs_up: counts.thumbs_up,
       thumbs_down: counts.thumbs_down,
-      user_rating: userRow ? userRow.rating : 0
+      user_rating: toggled ? 0 : ratingNum
     });
   });
 
@@ -107,6 +122,9 @@ function createApp(connectionString) {
   <title>Radio Calico</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://d3d4yli4hf5bmh.cloudfront.net" crossorigin>
+  <link rel="dns-prefetch" href="https://itunes.apple.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/radio.css">
 </head>
@@ -150,7 +168,7 @@ function createApp(connectionString) {
         <div class="controls">
           <button id="play-btn" aria-label="Play">
             <svg id="icon-play"  viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg id="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <svg id="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
           </button>
           <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
           <div class="visualizer" id="visualizer">
@@ -178,13 +196,13 @@ function createApp(connectionString) {
 
   <audio id="audio" preload="none"></audio>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
-  <script src="/shared.js"></script>
-  <script src="/components/ratings.js"></script>
-  <script src="/components/nowPlaying.js"></script>
-  <script src="/components/recentTracks.js"></script>
-  <script src="/player.js"></script>
-  <script src="/radio.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js"></script>
+  <script src="/shared.js" defer></script>
+  <script src="/components/ratings.js" defer></script>
+  <script src="/components/nowPlaying.js" defer></script>
+  <script src="/components/recentTracks.js" defer></script>
+  <script src="/player.js" defer></script>
+  <script src="/radio.js" defer></script>
 </body>
 </html>`);
   });

@@ -21,12 +21,10 @@ function setupDOM() {
 
 beforeAll(() => {
   global.COVER_URL = 'https://example.com/cover.jpg';
+  // DOM must exist before eval so module-level getElementById caching works
+  setupDOM();
   // eslint-disable-next-line no-eval
   global.eval(nowPlayingSrc);
-});
-
-beforeEach(() => {
-  setupDOM();
 });
 
 describe('updateNowPlaying', () => {
